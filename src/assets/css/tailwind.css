@@ -18,6 +18,11 @@
     place-content: center;
 }
 
+.dark .vue3-datatable input[type='checkbox'] + div {
+    background-color: #374151; /* gray-700 */
+    border-color: #4b5563; /* gray-600 */
+}
+
 .vue3-datatable input[type='checkbox'] + div svg {
     fill: currentColor;
     display: none;

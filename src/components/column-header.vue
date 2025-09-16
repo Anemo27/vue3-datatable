@@ -1,17 +1,19 @@
 <template>
-    <tr key="hdrrow">
+    <tr key="hdrrow" :class="{ 'bg-blue-50 dark:bg-gray-800': !props.isFooter, 'bg-white dark:bg-gray-900': props.isFooter }">
         <th
             v-if="props.all.hasCheckbox"
             :key="'chkall'"
+            scope="col"
             class="w-px font-bold align-top whitespace-nowrap text-left py-3 px-4"
             :class="{
-                'bg-blue-50': props.all.stickyFirstColumn,
+                'bg-blue-50 dark:bg-gray-800': props.all.stickyFirstColumn && !props.isFooter,
+                'bg-white dark:bg-gray-900': props.all.stickyFirstColumn && props.isFooter,
                 'left-0': props.all.stickyFirstColumn,
             }"
         >
             <div class="relative">
-                <input ref="selectedAll" type="checkbox" @click.stop="emit('selectAll', $event.target.checked)" class="opacity-0 absolute h-5 w-5" />
-                <div class="bg-white border border-solid rounded border-slate-300 w-5 h-5 grid place-content-center">
+                <input ref="selectedAll" type="checkbox" @click.stop="emit('selectAll', ($event.target as HTMLInputElement)?.checked)" class="opacity-0 absolute h-5 w-5" />
+                <div class="bg-white dark:bg-gray-900 border border-solid rounded border-slate-300 dark:border-gray-600 w-5 h-5 grid place-content-center">
                     <icon-check class="check hidden w-3 h-3 text-blue-600 pointer-events-none" />
                     <icon-dash class="intermediate hidden w-3 h-3 text-blue-600 pointer-events-none" />
                 </div>
@@ -21,10 +23,11 @@
             <th
                 v-if="!col.hide"
                 :key="col.field"
+                scope="col"
                 class="select-none z-[1] font-bold align-top whitespace-nowrap text-left py-3 px-4"
                 :class="[
                     props.all.sortable && col.sort ? 'cursor-pointer' : '',
-                    j === 0 && props.all.stickyFirstColumn ? 'sticky left-0 bg-blue-50' : '',
+                    j === 0 && props.all.stickyFirstColumn ? 'sticky left-0 bg-blue-50 dark:bg-gray-800' : '',
                     props.all.hasCheckbox && j === 0 && props.all.stickyFirstColumn ? 'left-[52px]' : '',
                 ]"
                 :style="{
@@ -55,10 +58,10 @@
 
                 <template v-if="props.all.columnFilter && !props.isFooter">
                     <div v-if="col.filter" class="relative">
-                        <input v-if="col.type === 'string'" v-model.trim="col.value" type="text" class="w-full box-border bg-white h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 text-black font-normal rounded-l px-3 py-1 text-sm" @keyup="emit('filterChange')" />
-                        <input v-if="col.type === 'number'" v-model.number.trim="col.value" type="number" class="w-full box-border bg-white h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 text-black font-normal rounded-l px-3 py-1 text-sm" @keyup="emit('filterChange')" />
-                        <input v-else-if="col.type === 'date'" v-model="col.value" type="date" class="w-full box-border bg-white h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 text-black font-normal rounded-l px-3 py-1 text-sm" @change="emit('filterChange')" />
-                        <select v-else-if="col.type === 'bool'" v-model="col.value" class="w-full box-border bg-white h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 text-black font-normal rounded-l px-3 py-1 text-sm" @change="emit('filterChange')" @click="props.isOpenFilter = null">
+                        <input v-if="col.type === 'string'" v-model.trim="col.value" type="text" class="w-full box-border bg-white dark:bg-gray-800 h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 dark:border-gray-600 text-black dark:text-white font-normal rounded-l px-3 py-1 text-sm" @keyup="emit('filterChange')" />
+                        <input v-if="col.type === 'number'" v-model.number.trim="col.value" type="number" class="w-full box-border bg-white dark:bg-gray-800 h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 dark:border-gray-600 text-black dark:text-white font-normal rounded-l px-3 py-1 text-sm" @keyup="emit('filterChange')" />
+                        <input v-else-if="col.type === 'date'" v-model="col.value" type="date" class="w-full box-border bg-white dark:bg-gray-800 h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 dark:border-gray-600 text-black dark:text-white font-normal rounded-l px-3 py-1 text-sm" @change="emit('filterChange')" />
+                        <select v-else-if="col.type === 'bool'" v-model="col.value" class="w-full box-border bg-white dark:bg-gray-800 h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 dark:border-gray-600 text-black dark:text-white font-normal rounded-l px-3 py-1 text-sm" @change="emit('filterChange')">
                             <option :value="undefined">All</option>
                             <option :value="true">True</option>
                             <option :value="false">False</option>

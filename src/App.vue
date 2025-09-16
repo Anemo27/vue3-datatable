@@ -35,6 +35,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
 import Vue3Datatable from './components/custom-table.vue';
+import type { colDef, SortDirection } from './components/types';
 import './assets/css/tailwind.css';
 
 onMounted(() => {
@@ -45,17 +46,16 @@ const datatable: any = ref(null);
 const loading: any = ref(true);
 const total_rows = ref(0);
 const rows: any = ref(null);
-const cols =
-    ref([
-        { field: 'id', title: 'ID' },
-        { field: 'firstName', title: 'First Name' },
-        { field: 'lastName', title: 'Last Name' },
-        { field: 'email', title: 'Email' },
-        { field: 'age', title: 'Age', type: 'number' },
-        { field: 'dob', title: 'Birthdate', type: 'date' },
-        { field: 'address.city', title: 'City' },
-        { field: 'isActive', title: 'Active', type: 'bool' },
-    ]) || [];
+const cols: colDef[] = [
+    { field: 'id', title: 'ID', type: 'number' },
+    { field: 'firstName', title: 'First Name', type: 'string' },
+    { field: 'lastName', title: 'Last Name', type: 'string' },
+    { field: 'email', title: 'Email', type: 'string' },
+    { field: 'age', title: 'Age', type: 'number' },
+    { field: 'dob', title: 'Birthdate', type: 'date' },
+    { field: 'address.city', title: 'City', type: 'string' },
+    { field: 'isActive', title: 'Active', type: 'bool' },
+];
 
 const changeServer = (data: any) => {
     params.current_page = data.current_page;
@@ -72,7 +72,7 @@ const params = reactive({
     current_page: 1,
     pagesize: 5,
     sort_column: 'id',
-    sort_direction: 'desc',
+    sort_direction: 'desc' as SortDirection,
     column_filters: [],
     search: '',
 });

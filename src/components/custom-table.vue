@@ -1,9 +1,10 @@
 <template>
-    <div class="antialiased relative text-black text-sm font-normal flex flex-col" :class="props.class">
-        <!-- Sticky Header Container -->
-        <div v-if="props.stickyHeader" class="sticky top-0 z-10 bg-white border-b border-solid border-blue-200 shadow-sm">
+    <div class="antialiased relative text-black dark:text-white text-sm font-normal flex flex-col" :class="props.class">
+        <!-- Scrollable Table Container -->
+        <div class="overflow-auto w-full relative rounded flex-1" :class="{ 'min-h-[300px]': currentLoader }" :style="{ height: props.stickyHeader ? props.height : undefined }">
             <table :class="['vue3-datatable w-full max-w-full border-collapse', props.skin]">
-                <thead class="bg-blue-50">
+                <!-- Header -->
+                <thead :class="['bg-blue-50 dark:bg-gray-800', { 'sticky top-0 z-10 shadow-sm': props.stickyHeader }]">
                     <column-header
                         :all="props"
                         :currentSortColumn="currentSortColumn"
@@ -17,45 +18,24 @@
                         @toggleFilterMenu="toggleFilterMenu"
                     />
                 </thead>
-            </table>
-        </div>
-
-        <!-- Scrollable Table Body -->
-        <div class="overflow-auto w-full relative rounded flex-1" :class="{ 'min-h-[300px]': currentLoader }" :style="{ height: props.stickyHeader && props.height }">
-            <table :class="['vue3-datatable w-full max-w-full border-collapse', props.skin]">
-                <!-- Header (hidden when sticky) -->
-                <thead v-if="!props.stickyHeader" class="bg-blue-50">
-                    <column-header
-                        :all="props"
-                        :currentSortColumn="currentSortColumn"
-                        :currentSortDirection="currentSortDirection"
-                        :isOpenFilter="isOpenFilter"
-                        :checkAll="selectedAll"
-                        :columnFilterLang="props.columnFilterLang"
-                        @selectAll="selectAll"
-                        @sortChange="sortChange"
-                        @filterChange="filterChange"
-                        @toggleFilterMenu="toggleFilterMenu"
-                    />
-                </thead>
-                <tbody class="border-b border-solid border-blue-200">
+                <tbody class="border-b border-solid border-blue-200 dark:border-gray-600">
                     <template v-if="filterRowCount">
                         <tr
                             v-for="(item, i) in filterItems"
-                            :key="item[uniqueKey] ? item[uniqueKey] : i"
-                            :class="[typeof props.rowClass === 'function' ? rowClass(item) : props.rowClass, props.selectRowOnClick ? 'cursor-pointer' : '']"
+                            :key="item[uniqueKey || ''] ? item[uniqueKey || ''] : i"
+                            :class="[typeof props.rowClass === 'function' ? (props.rowClass as Function)(item, i) : props.rowClass, props.selectRowOnClick ? 'cursor-pointer' : '']"
                             @click.prevent="rowClick(item, i)"
                         >
                             <td
                                 v-if="props.hasCheckbox"
                                 class="text-left py-3 px-4"
                                 :class="{
-                                    'sticky left-0 bg-blue-50': props.stickyFirstColumn,
+                                    'sticky left-0 bg-blue-50 dark:bg-gray-800': props.stickyFirstColumn,
                                 }"
                             >
                                 <div class="relative">
-                                    <input v-model="selected" type="checkbox" :value="item[uniqueKey] ? item[uniqueKey] : i" @click.stop class="opacity-0 absolute h-5 w-5" />
-                                    <div class="bg-white border border-solid rounded border-slate-300 w-5 h-5 grid place-content-center">
+                                    <input v-model="selected" type="checkbox" :value="item[uniqueKey || ''] ? item[uniqueKey || ''] : i" @click.stop class="opacity-0 absolute h-5 w-5" />
+                                    <div class="bg-white dark:bg-gray-900 border border-solid rounded border-slate-300 dark:border-gray-600 w-5 h-5 grid place-content-center">
                                         <icon-check class="check hidden w-3 h-3 text-blue-600 pointer-events-none" />
                                     </div>
                                 </div>
@@ -66,13 +46,13 @@
                                     :key="col.field"
                                     class="text-left py-3 px-4"
                                     :class="[
-                                        typeof props.cellClass === 'function' ? cellClass(item) : props.cellClass,
-                                        j === 0 && props.stickyFirstColumn ? 'sticky left-0 bg-blue-50' : '',
+                                        typeof props.cellClass === 'function' ? (props.cellClass as Function)(item, j) : props.cellClass,
+                                        j === 0 && props.stickyFirstColumn ? 'sticky left-0 bg-blue-50 dark:bg-gray-800' : '',
                                         props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'left-[52px]' : '',
                                         col.cellClass ? col.cellClass : '',
                                     ]"
                                 >
-                                    <template v-if="slots[col.field]">
+                                    <template v-if="slots[col.field || '']">
                                         <slot :name="col.field" :value="item"></slot>
                                     </template>
                                     <div v-else-if="col.cellRenderer" v-html="col.cellRenderer(item)"></div>
@@ -92,16 +72,16 @@
                     <template v-if="!filterRowCount && currentLoader">
                         <tr v-for="i in props.pageSize" :key="i" class="!bg-white h-11 !border-transparent">
                             <td :colspan="props.columns.length + 1" class="!p-0 !border-transparent">
-                                <div class="relative overflow-hidden bg-gray-100 w-full h-8
+                                <div class="relative overflow-hidden bg-gray-100 dark:bg-gray-700 w-full h-8
                                      after:content-[''] after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_infinite]
-                                     after:bg-[linear-gradient(90deg,rgba(0,0,0,0)_0,rgba(0,0,0,0.025)_20%,rgba(0,0,0,0.05)_50%,rgba(0,0,0,0))]"></div>
+                                     after:bg-[linear-gradient(90deg,rgba(0,0,0,0)_0,rgba(0,0,0,0.025)_20%,rgba(0,0,0,0.05)_50%,rgba(0,0,0,0)_dark)] dark:after:bg-[linear-gradient(90deg,rgba(255,255,255,0)_0,rgba(255,255,255,0.025)_20%,rgba(255,255,255,0.05)_50%,rgba(255,255,255,0))]"></div>
                             </td>
                         </tr>
                     </template>
                 </tbody>
 
-                <!-- Footer (shown when not sticky) -->
-                <tfoot v-if="props.cloneHeaderInFooter && !props.stickyHeader">
+                <!-- Footer -->
+                <tfoot v-if="props.cloneHeaderInFooter" :class="[{ 'sticky bottom-0 z-10 bg-white dark:bg-gray-900 border-t border-solid border-blue-200 dark:border-gray-600 shadow-sm': props.stickyHeader }]">
                     <column-header
                         :all="props"
                         :currentSortColumn="currentSortColumn"
@@ -117,27 +97,7 @@
                 </tfoot>
             </table>
 
-            <!-- Sticky Footer Container -->
-            <div v-if="props.cloneHeaderInFooter && props.stickyHeader" class="sticky bottom-0 z-10 bg-white border-t border-solid border-blue-200 shadow-sm mt-2">
-                <table :class="['vue3-datatable w-full max-w-full border-collapse', props.skin]">
-                    <tfoot>
-                        <column-header
-                            :all="props"
-                            :currentSortColumn="currentSortColumn"
-                            :currentSortDirection="currentSortDirection"
-                            :isOpenFilter="isOpenFilter"
-                            :isFooter="true"
-                            :checkAll="selectedAll"
-                            @selectAll="selectAll"
-                            @sortChange="sortChange"
-                            @filterChange="filterChange"
-                            @toggleFilterMenu="toggleFilterMenu"
-                        />
-                    </tfoot>
-                </table>
-            </div>
-
-            <div v-if="filterRowCount && currentLoader" class="absolute inset-0 bg-blue-50/50 grid place-content-center">
+            <div v-if="filterRowCount && currentLoader" class="absolute inset-0 bg-blue-50/50 dark:bg-gray-900/50 grid place-content-center">
                 <icon-loader />
             </div>
         </div>
@@ -147,7 +107,7 @@
                     <span class="mr-2">
                         {{ stringFormat(props.paginationInfo, filterRowCount ? offset : 0, limit, filterRowCount) }}
                     </span>
-                    <select v-if="props.showPageSize" v-model="currentPageSize" class="outline-0 bg-white box-border focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 rounded text-black font-normal px-2 py-1.5">
+                    <select v-if="props.showPageSize" v-model="currentPageSize" class="outline-0 bg-white dark:bg-gray-800 box-border focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 dark:border-gray-600 rounded text-black dark:text-white font-normal px-2 py-1.5">
                         <option v-for="option in props.pageSizeOptions" :value="option" :key="option">
                             {{ option }}
                         </option>
@@ -155,7 +115,7 @@
                 </div>
 
                 <div class="sm:ml-auto inline-flex items-center space-x-1">
-                    <button v-if="props.showFirstPage" type="button" class="bg-white cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 first-page" :class="{ 'pointer-events-none opacity-50': currentPage <= 1 }" @click="currentPage = 1">
+                    <button v-if="props.showFirstPage" type="button" class="bg-white dark:bg-gray-800 cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 dark:text-gray-300 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 dark:border-gray-600 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 first-page" :class="{ 'pointer-events-none opacity-50': currentPage <= 1 }" @click="currentPage = 1">
                         <span v-if="props.firstArrow" v-html="props.firstArrow"> </span>
                         <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                             <g fill="currentColor" fill-rule="evenodd">
@@ -164,7 +124,7 @@
                             </g>
                         </svg>
                     </button>
-                    <button type="button" class="bg-white cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 previous-page" :class="{ 'pointer-events-none opacity-50': currentPage <= 1 }" @click="previousPage">
+                    <button type="button" class="bg-white dark:bg-gray-800 cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 dark:text-gray-300 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 dark:border-gray-600 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 previous-page" :class="{ 'pointer-events-none opacity-50': currentPage <= 1 }" @click="previousPage">
                         <span v-if="props.previousArrow" v-html="props.previousArrow"> </span>
                         <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                             <path
@@ -180,7 +140,7 @@
                             v-for="page in paging"
                             :key="page"
                             type="button"
-                            class="bg-white cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200"
+                            class="bg-white dark:bg-gray-800 cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 dark:text-gray-300 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 dark:border-gray-600 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200"
                             :class="{
                                 disabled: currentPage === page,
                                 'bg-blue-600 text-white border-blue-600': page === currentPage,
@@ -191,7 +151,7 @@
                         </button>
                     </template>
 
-                    <button type="button" class="bg-white cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 next-page" :class="{ 'pointer-events-none opacity-50': currentPage >= maxPage }" @click="nextPage">
+                    <button type="button" class="bg-white dark:bg-gray-800 cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 dark:text-gray-300 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 dark:border-gray-600 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 next-page" :class="{ 'pointer-events-none opacity-50': currentPage >= maxPage }" @click="nextPage">
                         <span v-if="props.nextArrow" v-html="props.nextArrow"> </span>
                         <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                             <path
@@ -202,7 +162,7 @@
                         </svg>
                     </button>
 
-                    <button v-if="props.showLastPage" type="button" class="bg-white cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 last-page" :class="{ 'pointer-events-none opacity-50': currentPage >= maxPage }" @click="currentPage = maxPage">
+                    <button v-if="props.showLastPage" type="button" class="bg-white dark:bg-gray-800 cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 dark:text-gray-300 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 dark:border-gray-600 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 last-page" :class="{ 'pointer-events-none opacity-50': currentPage >= maxPage }" @click="currentPage = maxPage">
                         <span v-if="props.lastArrow" v-html="props.lastArrow"> </span>
                         <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                             <g fill="currentColor" fill-rule="evenodd">
@@ -254,41 +214,22 @@ const safeNumber = (value: any): number | null => {
     return isNaN(num) ? null : num;
 };
 
-const safeBoolean = (value: any): boolean => {
-    if (typeof value === 'boolean') return value;
-    if (typeof value === 'string') return value.toLowerCase() === 'true';
-    return Boolean(value);
+const safeStringValue = (value: any): string => {
+    if (value == null) return '';
+    return String(value);
 };
 
-// Generic constraints and advanced types
-type PrimitiveValue = string | number | boolean | Date | null | undefined;
-
-interface BaseDataRow {
-    [key: string]: PrimitiveValue | object;
-}
-
-type StrictDataRow<T extends BaseDataRow = BaseDataRow> = T;
-
-// Constrained column definition
-export interface StrictColDef<T extends BaseDataRow = BaseDataRow> {
-    isUnique?: boolean;
-    field?: keyof T | string;
-    title?: string;
-    value?: PrimitiveValue;
-    condition?: FilterCondition;
-    type?: ColumnType;
-    width?: string;
-    minWidth?: string;
-    maxWidth?: string;
-    hide?: boolean;
-    filter?: boolean;
-    search?: boolean;
-    sort?: boolean;
-    html?: boolean;
-    cellRenderer?: (item: T) => string;
-    headerClass?: string;
-    cellClass?: string;
-}
+// Import types from separate file
+import type {
+    ColumnType,
+    FilterCondition,
+    SortDirection,
+    DataRow,
+    PrimitiveValue,
+    BaseDataRow,
+    colDef,
+    StrictColDef
+} from './types';
 
 // Simplified Props interface for Vue SFC compatibility
 interface Props {
@@ -329,6 +270,7 @@ interface Props {
     stickyFirstColumn?: boolean;
     cloneHeaderInFooter?: boolean;
     selectRowOnClick?: boolean;
+    darkMode?: boolean; // New prop for manual dark mode control
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -370,12 +312,13 @@ const props = withDefaults(defineProps<Props>(), {
     stickyFirstColumn: false,
     cloneHeaderInFooter: false,
     selectRowOnClick: false,
+    darkMode: false, // Default to false, uses system preference or manual class
 });
 
 // set default columns values
 for (const item of props.columns || []) {
     const type = item.type?.toLowerCase() || 'string';
-    item.type = type;
+    item.type = type as ColumnType;
     item.isUnique = item.isUnique !== undefined ? item.isUnique : false;
     item.hide = item.hide !== undefined ? item.hide : false;
     item.filter = item.filter !== undefined ? item.filter : true;
@@ -511,32 +454,40 @@ const filteredRows = () => {
 
                         if (d.condition === 'contain') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field)?.toString().toLowerCase().includes(d.value.toLowerCase());
+                                const cellVal = safeCellValue(item, d.field);
+                                const filterVal = safeStringValue(d.value);
+                                return cellVal?.toString().toLowerCase().includes(filterVal.toLowerCase());
                             });
                         } else if (d.condition === 'not_contain') {
                             rows = rows.filter((item) => {
-                                return !safeCellValue(item, d.field)?.toString().toLowerCase().includes(d.value.toLowerCase());
+                                const cellVal = safeCellValue(item, d.field);
+                                const filterVal = safeStringValue(d.value);
+                                return !cellVal?.toString().toLowerCase().includes(filterVal.toLowerCase());
                             });
                         } else if (d.condition === 'equal') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field)?.toString().toLowerCase() === d.value.toLowerCase();
+                                const cellVal = safeCellValue(item, d.field);
+                                const filterVal = safeStringValue(d.value);
+                                return cellVal?.toString().toLowerCase() === filterVal.toLowerCase();
                             });
                         } else if (d.condition === 'not_equal') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field)?.toString().toLowerCase() !== d.value.toLowerCase();
+                                const cellVal = safeCellValue(item, d.field);
+                                const filterVal = safeStringValue(d.value);
+                                return cellVal?.toString().toLowerCase() !== filterVal.toLowerCase();
                             });
                         } else if (d.condition == 'start_with') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field)?.toString().toLowerCase().indexOf(d.value.toLowerCase()) === 0;
+                                const cellVal = safeCellValue(item, d.field);
+                                const filterVal = safeStringValue(d.value);
+                                return cellVal?.toString().toLowerCase().indexOf(filterVal.toLowerCase()) === 0;
                             });
                         } else if (d.condition == 'end_with') {
                             rows = rows.filter((item) => {
-                                return (
-                                    safeCellValue(item, d.field)
-                                        ?.toString()
-                                        .toLowerCase()
-                                        .substr(d.value.length * -1) === d.value.toLowerCase()
-                                );
+                                const cellVal = safeCellValue(item, d.field);
+                                const filterVal = safeStringValue(d.value);
+                                const cellStr = cellVal?.toString().toLowerCase();
+                                return cellStr?.substr(filterVal.length * -1) === filterVal.toLowerCase();
                             });
                         }
                     }
@@ -548,27 +499,45 @@ const filteredRows = () => {
 
                         if (d.condition === 'equal') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) === safeParseFloat(d.value);
+                                const cellVal = safeCellValue(item, d.field);
+                                const parsedCell = safeParseFloat(cellVal);
+                                const parsedFilter = safeParseFloat(d.value);
+                                return cellVal && parsedCell !== null && parsedFilter !== null && parsedCell === parsedFilter;
                             });
                         } else if (d.condition === 'not_equal') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) !== safeParseFloat(d.value);
+                                const cellVal = safeCellValue(item, d.field);
+                                const parsedCell = safeParseFloat(cellVal);
+                                const parsedFilter = safeParseFloat(d.value);
+                                return cellVal && parsedCell !== null && parsedFilter !== null && parsedCell !== parsedFilter;
                             });
                         } else if (d.condition === 'greater_than') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) > safeParseFloat(d.value);
+                                const cellVal = safeCellValue(item, d.field);
+                                const parsedCell = safeParseFloat(cellVal);
+                                const parsedFilter = safeParseFloat(d.value);
+                                return cellVal && parsedCell !== null && parsedFilter !== null && parsedCell > parsedFilter;
                             });
                         } else if (d.condition === 'greater_than_equal') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) >= safeParseFloat(d.value);
+                                const cellVal = safeCellValue(item, d.field);
+                                const parsedCell = safeParseFloat(cellVal);
+                                const parsedFilter = safeParseFloat(d.value);
+                                return cellVal && parsedCell !== null && parsedFilter !== null && parsedCell >= parsedFilter;
                             });
                         } else if (d.condition === 'less_than') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) < safeParseFloat(d.value);
+                                const cellVal = safeCellValue(item, d.field);
+                                const parsedCell = safeParseFloat(cellVal);
+                                const parsedFilter = safeParseFloat(d.value);
+                                return cellVal && parsedCell !== null && parsedFilter !== null && parsedCell < parsedFilter;
                             });
                         } else if (d.condition === 'less_than_equal') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) <= safeParseFloat(d.value);
+                                const cellVal = safeCellValue(item, d.field);
+                                const parsedCell = safeParseFloat(cellVal);
+                                const parsedFilter = safeParseFloat(d.value);
+                                return cellVal && parsedCell !== null && parsedFilter !== null && parsedCell <= parsedFilter;
                             });
                         }
                     }
@@ -580,19 +549,27 @@ const filteredRows = () => {
 
                         if (d.condition === 'equal') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field) && safeDateFormat(safeCellValue(item, d.field)) === d.value;
+                                const cellVal = safeCellValue(item, d.field);
+                                const filterVal = safeStringValue(d.value);
+                                return cellVal && safeDateFormat(cellVal) === filterVal;
                             });
                         } else if (d.condition === 'not_equal') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field) && safeDateFormat(safeCellValue(item, d.field)) !== d.value;
+                                const cellVal = safeCellValue(item, d.field);
+                                const filterVal = safeStringValue(d.value);
+                                return cellVal && safeDateFormat(cellVal) !== filterVal;
                             });
                         } else if (d.condition === 'greater_than') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field) && safeDateFormat(safeCellValue(item, d.field)) > d.value;
+                                const cellVal = safeCellValue(item, d.field);
+                                const filterVal = safeStringValue(d.value);
+                                return cellVal && safeDateFormat(cellVal) > filterVal;
                             });
                         } else if (d.condition === 'less_than') {
                             rows = rows.filter((item) => {
-                                return safeCellValue(item, d.field) && safeDateFormat(safeCellValue(item, d.field)) < d.value;
+                                const cellVal = safeCellValue(item, d.field);
+                                const filterVal = safeStringValue(d.value);
+                                return cellVal && safeDateFormat(cellVal) < filterVal;
                             });
                         }
                     }
@@ -687,7 +664,7 @@ const toggleFilterMenu = (col: colDef) => {
         if (isOpenFilter.value === col.field) {
             isOpenFilter.value = null;
         } else {
-            isOpenFilter.value = col.field;
+            isOpenFilter.value = col.field || null;
         }
     } else {
         isOpenFilter.value = null;
@@ -776,7 +753,7 @@ const sortChange = (field: string) => {
     let offset = (currentPage.value - 1) * <number>currentPageSize.value;
     let limit = currentPageSize.value;
     currentSortColumn.value = field;
-    currentSortDirection.value = direction;
+    currentSortDirection.value = direction as SortDirection;
 
     selectAll(false);
     filterRows();
@@ -790,7 +767,7 @@ const sortChange = (field: string) => {
 
 // checkbox
 const checkboxChange = (value: Array<string | number>): void => {
-    selectedAll.value = value.length && filterItems.value.length && value.length === filterItems.value.length;
+    selectedAll.value = Boolean(value.length && filterItems.value.length && value.length === filterItems.value.length);
 
     const rows = filterItems.value.filter((d, i) => selected.value.includes(uniqueKey.value ? d[uniqueKey.value as never] : i));
 
@@ -969,7 +946,7 @@ const rowClick = (item: DataRow, index: number): void => {
             emit('rowClick', item);
         }, delay.value);
     } else if (clickCount.value === 2) {
-        clearTimeout(timer.value);
+        clearTimeout(timer.value as NodeJS.Timeout);
         clickCount.value = 0;
         emit('rowDBClick', item);
     }
