@@ -23,10 +23,10 @@
             :sortable="true"
             :sortColumn="params.sort_column"
             :sortDirection="params.sort_direction"
-            :search="params.search"
             :hasCheckbox="true"
             :columnFilter="false"
             :class="'h-96'"
+            :stickyHeader="true"
             @change="changeServer"
         >
         </vue3-datatable>
@@ -47,7 +47,7 @@ const total_rows = ref(0);
 const rows: any = ref(null);
 const cols =
     ref([
-        { field: 'id', title: 'ID', isUnique: true, filter: false },
+        { field: 'id', title: 'ID' },
         { field: 'firstName', title: 'First Name' },
         { field: 'lastName', title: 'Last Name' },
         { field: 'email', title: 'Email' },

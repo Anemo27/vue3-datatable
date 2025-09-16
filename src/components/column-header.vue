@@ -5,8 +5,7 @@
             :key="'chkall'"
             class="w-px font-bold align-top whitespace-nowrap text-left py-3 px-4"
             :class="{
-                'sticky bg-blue-50 z-[1]': props.all.stickyHeader || props.all.stickyFirstColumn,
-                'top-0': props.all.stickyHeader,
+                'bg-blue-50': props.all.stickyFirstColumn,
                 'left-0': props.all.stickyFirstColumn,
             }"
         >

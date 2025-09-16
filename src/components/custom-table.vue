@@ -1,8 +1,30 @@
 <template>
     <div class="antialiased relative text-black text-sm font-normal flex flex-col" :class="props.class">
+        <!-- Sticky Header Container -->
+        <div v-if="props.stickyHeader" class="sticky top-0 z-10 bg-white border-b border-solid border-blue-200 shadow-sm">
+            <table :class="['vue3-datatable w-full max-w-full border-collapse', props.skin]">
+                <thead class="bg-blue-50">
+                    <column-header
+                        :all="props"
+                        :currentSortColumn="currentSortColumn"
+                        :currentSortDirection="currentSortDirection"
+                        :isOpenFilter="isOpenFilter"
+                        :checkAll="selectedAll"
+                        :columnFilterLang="props.columnFilterLang"
+                        @selectAll="selectAll"
+                        @sortChange="sortChange"
+                        @filterChange="filterChange"
+                        @toggleFilterMenu="toggleFilterMenu"
+                    />
+                </thead>
+            </table>
+        </div>
+
+        <!-- Scrollable Table Body -->
         <div class="overflow-auto w-full relative rounded flex-1" :class="{ 'min-h-[300px]': currentLoader }" :style="{ height: props.stickyHeader && props.height }">
             <table :class="['vue3-datatable w-full max-w-full border-collapse', props.skin]">
-                <thead :class="['bg-blue-50', { 'sticky top-0 z-10': props.stickyHeader }]">
+                <!-- Header (hidden when sticky) -->
+                <thead v-if="!props.stickyHeader" class="bg-blue-50">
                     <column-header
                         :all="props"
                         :currentSortColumn="currentSortColumn"
@@ -55,7 +77,7 @@
                                     </template>
                                     <div v-else-if="col.cellRenderer" v-html="col.cellRenderer(item)"></div>
                                     <template v-else>
-                                        {{ cellValue(item, col.field) }}
+                                        {{ safeCellValue(item, col.field) }}
                                     </template>
                                 </td>
                             </template>
@@ -78,7 +100,8 @@
                     </template>
                 </tbody>
 
-                <tfoot v-if="props.cloneHeaderInFooter" :class="{ 'sticky bottom-0': props.stickyHeader }">
+                <!-- Footer (shown when not sticky) -->
+                <tfoot v-if="props.cloneHeaderInFooter && !props.stickyHeader">
                     <column-header
                         :all="props"
                         :currentSortColumn="currentSortColumn"
@@ -93,6 +116,26 @@
                     />
                 </tfoot>
             </table>
+
+            <!-- Sticky Footer Container -->
+            <div v-if="props.cloneHeaderInFooter && props.stickyHeader" class="sticky bottom-0 z-10 bg-white border-t border-solid border-blue-200 shadow-sm mt-2">
+                <table :class="['vue3-datatable w-full max-w-full border-collapse', props.skin]">
+                    <tfoot>
+                        <column-header
+                            :all="props"
+                            :currentSortColumn="currentSortColumn"
+                            :currentSortDirection="currentSortDirection"
+                            :isOpenFilter="isOpenFilter"
+                            :isFooter="true"
+                            :checkAll="selectedAll"
+                            @selectAll="selectAll"
+                            @sortChange="sortChange"
+                            @filterChange="filterChange"
+                            @toggleFilterMenu="toggleFilterMenu"
+                        />
+                    </tfoot>
+                </table>
+            </div>
 
             <div v-if="filterRowCount && currentLoader" class="absolute inset-0 bg-blue-50/50 grid place-content-center">
                 <icon-loader />
@@ -182,45 +225,91 @@ import iconLoader from './icon-loader.vue';
 
 const slots = useSlots();
 
-export interface colDef {
+// Type guards and utility functions
+const isValidColumnType = (type: string): type is ColumnType => {
+    return ['string', 'number', 'date', 'bool'].includes(type);
+};
+
+const isValidFilterCondition = (condition: string): condition is FilterCondition => {
+    const validConditions: FilterCondition[] = [
+        'contain', 'not_contain', 'equal', 'not_equal', 'greater_than', 'greater_than_equal',
+        'less_than', 'less_than_equal', 'start_with', 'end_with', 'is_null', 'is_not_null'
+    ];
+    return validConditions.includes(condition as FilterCondition);
+};
+
+const isValidSortDirection = (direction: string): direction is SortDirection => {
+    return direction === 'asc' || direction === 'desc';
+};
+
+// Safe type conversion utilities
+const safeString = (value: any): string => {
+    if (value == null) return '';
+    return String(value);
+};
+
+const safeNumber = (value: any): number | null => {
+    if (value == null || value === '') return null;
+    const num = Number(value);
+    return isNaN(num) ? null : num;
+};
+
+const safeBoolean = (value: any): boolean => {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') return value.toLowerCase() === 'true';
+    return Boolean(value);
+};
+
+// Generic constraints and advanced types
+type PrimitiveValue = string | number | boolean | Date | null | undefined;
+
+interface BaseDataRow {
+    [key: string]: PrimitiveValue | object;
+}
+
+type StrictDataRow<T extends BaseDataRow = BaseDataRow> = T;
+
+// Constrained column definition
+export interface StrictColDef<T extends BaseDataRow = BaseDataRow> {
     isUnique?: boolean;
-    field?: string;
+    field?: keyof T | string;
     title?: string;
-    value?: any;
-    condition?: any;
-    type?: string; // string|date|number|bool
-    width?: string | undefined;
-    minWidth?: string | undefined;
-    maxWidth?: string | undefined;
+    value?: PrimitiveValue;
+    condition?: FilterCondition;
+    type?: ColumnType;
+    width?: string;
+    minWidth?: string;
+    maxWidth?: string;
     hide?: boolean;
-    filter?: boolean; // column filter
-    search?: boolean; // global search
+    filter?: boolean;
+    search?: boolean;
     sort?: boolean;
     html?: boolean;
-    cellRenderer?: [Function, string];
+    cellRenderer?: (item: T) => string;
     headerClass?: string;
     cellClass?: string;
 }
 
+// Simplified Props interface for Vue SFC compatibility
 interface Props {
     loading?: boolean;
     isServerMode?: boolean;
     skin?: string;
     totalRows?: number;
-    rows?: Array<any>;
+    rows?: Array<DataRow>;
     columns?: Array<colDef>;
     hasCheckbox?: boolean;
     search?: string;
     columnChooser?: boolean;
-    page?: number; // default: 1
-    pageSize?: number; // default: 10
-    pageSizeOptions?: Array<number>; // default: [10, 20, 30, 50, 100]
+    page?: number;
+    pageSize?: number;
+    pageSizeOptions?: Array<number>;
     showPageSize?: boolean;
-    rowClass?: [Array<string>, Function];
-    cellClass?: [Array<string>, Function];
+    rowClass?: Array<string> | Function;
+    cellClass?: Array<string> | Function;
     sortable?: boolean;
     sortColumn?: string;
-    sortDirection?: string;
+    sortDirection?: SortDirection;
     columnFilter?: boolean;
     columnFilterLang?: Record<string, string> | null;
     pagination?: boolean;
@@ -232,11 +321,11 @@ interface Props {
     lastArrow?: string;
     nextArrow?: string;
     previousArrow?: string;
-    paginationInfo?: string; // default: "Showing {0} to {1} of {2} entries"
-    noDataContent?: string; // default: "No data available",
+    paginationInfo?: string;
+    noDataContent?: string;
     stickyHeader?: boolean;
-    height?: string; // default 450px - only working with sticky headers
-    class?: string; // Custom CSS classes for the datatable wrapper
+    height?: string;
+    class?: string;
     stickyFirstColumn?: boolean;
     cloneHeaderInFooter?: boolean;
     selectRowOnClick?: boolean;
@@ -305,16 +394,16 @@ const oldSortColumn = props.sortColumn;
 const currentSortDirection = ref(props.sortDirection);
 const oldSortDirection = props.sortDirection;
 const filterRowCount = ref(props.totalRows);
-const selected: Ref<Array<any>> = ref([]);
-const selectedAll: any = ref(null);
+const selected: Ref<Array<string | number>> = ref([]);
+const selectedAll: Ref<boolean | null> = ref(null);
 const currentLoader = ref(props.loading);
 const currentSearch = ref(props.search);
 const oldColumns = JSON.parse(JSON.stringify(props.columns));
 
-const isOpenFilter: any = ref(null);
+const isOpenFilter: Ref<string | null> = ref(null);
 
 // row click
-const timer: any = ref(null);
+const timer: Ref<NodeJS.Timeout | null> = ref(null);
 let clickCount: Ref<number> = ref(0);
 const delay: Ref<number> = ref(230);
 
@@ -352,9 +441,9 @@ defineExpose({
     },
 });
 
-const stringFormat = (template: string, ...args: any[]) => {
+const stringFormat = (template: string, ...args: (string | number)[]): string => {
     return template.replace(/{(\d+)}/g, (match, number) => {
-        return typeof args[number] != 'undefined' ? args[number] : match;
+        return typeof args[number] != 'undefined' ? String(args[number]) : match;
     });
 };
 
@@ -422,28 +511,28 @@ const filteredRows = () => {
 
                         if (d.condition === 'contain') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field)?.toString().toLowerCase().includes(d.value.toLowerCase());
+                                return safeCellValue(item, d.field)?.toString().toLowerCase().includes(d.value.toLowerCase());
                             });
                         } else if (d.condition === 'not_contain') {
                             rows = rows.filter((item) => {
-                                return !cellValue(item, d.field)?.toString().toLowerCase().includes(d.value.toLowerCase());
+                                return !safeCellValue(item, d.field)?.toString().toLowerCase().includes(d.value.toLowerCase());
                             });
                         } else if (d.condition === 'equal') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field)?.toString().toLowerCase() === d.value.toLowerCase();
+                                return safeCellValue(item, d.field)?.toString().toLowerCase() === d.value.toLowerCase();
                             });
                         } else if (d.condition === 'not_equal') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field)?.toString().toLowerCase() !== d.value.toLowerCase();
+                                return safeCellValue(item, d.field)?.toString().toLowerCase() !== d.value.toLowerCase();
                             });
                         } else if (d.condition == 'start_with') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field)?.toString().toLowerCase().indexOf(d.value.toLowerCase()) === 0;
+                                return safeCellValue(item, d.field)?.toString().toLowerCase().indexOf(d.value.toLowerCase()) === 0;
                             });
                         } else if (d.condition == 'end_with') {
                             rows = rows.filter((item) => {
                                 return (
-                                    cellValue(item, d.field)
+                                    safeCellValue(item, d.field)
                                         ?.toString()
                                         .toLowerCase()
                                         .substr(d.value.length * -1) === d.value.toLowerCase()
@@ -459,27 +548,27 @@ const filteredRows = () => {
 
                         if (d.condition === 'equal') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) === parseFloat(d.value);
+                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) === safeParseFloat(d.value);
                             });
                         } else if (d.condition === 'not_equal') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) !== parseFloat(d.value);
+                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) !== safeParseFloat(d.value);
                             });
                         } else if (d.condition === 'greater_than') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) > parseFloat(d.value);
+                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) > safeParseFloat(d.value);
                             });
                         } else if (d.condition === 'greater_than_equal') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) >= parseFloat(d.value);
+                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) >= safeParseFloat(d.value);
                             });
                         } else if (d.condition === 'less_than') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) < parseFloat(d.value);
+                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) < safeParseFloat(d.value);
                             });
                         } else if (d.condition === 'less_than_equal') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) <= parseFloat(d.value);
+                                return safeCellValue(item, d.field) && safeParseFloat(safeCellValue(item, d.field)) <= safeParseFloat(d.value);
                             });
                         }
                     }
@@ -491,38 +580,38 @@ const filteredRows = () => {
 
                         if (d.condition === 'equal') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field) && dateFormat(cellValue(item, d.field)) === d.value;
+                                return safeCellValue(item, d.field) && safeDateFormat(safeCellValue(item, d.field)) === d.value;
                             });
                         } else if (d.condition === 'not_equal') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field) && dateFormat(cellValue(item, d.field)) !== d.value;
+                                return safeCellValue(item, d.field) && safeDateFormat(safeCellValue(item, d.field)) !== d.value;
                             });
                         } else if (d.condition === 'greater_than') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field) && dateFormat(cellValue(item, d.field)) > d.value;
+                                return safeCellValue(item, d.field) && safeDateFormat(safeCellValue(item, d.field)) > d.value;
                             });
                         } else if (d.condition === 'less_than') {
                             rows = rows.filter((item) => {
-                                return cellValue(item, d.field) && dateFormat(cellValue(item, d.field)) < d.value;
+                                return safeCellValue(item, d.field) && safeDateFormat(safeCellValue(item, d.field)) < d.value;
                             });
                         }
                     }
                     // boolean filters
                     else if (d.type === 'bool') {
                         rows = rows.filter((item) => {
-                            return cellValue(item, d.field) === d.value;
+                            return safeCellValue(item, d.field) === d.value;
                         });
                     }
 
                     if (d.condition === 'is_null') {
                         rows = rows.filter((item) => {
-                            return cellValue(item, d.field) == null || cellValue(item, d.field) == '';
+                            return safeCellValue(item, d.field) == null || safeCellValue(item, d.field) == '';
                         });
                         d.value = '';
                     } else if (d.condition === 'is_not_null') {
                         d.value = '';
                         rows = rows.filter((item) => {
-                            return cellValue(item, d.field);
+                            return safeCellValue(item, d.field);
                         });
                     }
                 }
@@ -541,7 +630,7 @@ const filteredRows = () => {
 
             for (var j = 0; j < rows?.length; j++) {
                 for (var i = 0; i < keys.length; i++) {
-                    if (cellValue(rows[j], keys[i])?.toString().toLowerCase().includes(currentSearch.value.toLowerCase())) {
+                    if (safeCellValue(rows[j], keys[i])?.toString().toLowerCase().includes(currentSearch.value.toLowerCase())) {
                         final.push(rows[j]);
                         break;
                     }
@@ -559,7 +648,7 @@ const filteredRows = () => {
             });
             const sortOrder = currentSortDirection.value === 'desc' ? -1 : 1;
 
-            rows.sort((a: any, b: any): number => {
+            rows.sort((a: DataRow, b: DataRow): number => {
                 const valA = currentSortColumn.value?.split('.').reduce((obj: any, key: string) => obj?.[key], a);
                 const valB = currentSortColumn.value?.split('.').reduce((obj: any, key: string) => obj?.[key], b);
 
@@ -699,8 +788,8 @@ const sortChange = (field: string) => {
     }
 };
 
-// checkboax
-const checkboxChange = (value: any) => {
+// checkbox
+const checkboxChange = (value: Array<string | number>): void => {
     selectedAll.value = value.length && filterItems.value.length && value.length === filterItems.value.length;
 
     const rows = filterItems.value.filter((d, i) => selected.value.includes(uniqueKey.value ? d[uniqueKey.value as never] : i));
@@ -708,7 +797,8 @@ const checkboxChange = (value: any) => {
     emit('rowSelect', rows);
 };
 watch(() => selected.value, checkboxChange);
-const selectAll = (checked: any) => {
+
+const selectAll = (checked: boolean): void => {
     if (checked) {
         selected.value = filterItems.value.map((d, i) => (uniqueKey.value ? d[uniqueKey.value as never] : i));
     } else {
@@ -760,27 +850,107 @@ watch(
     }
 );
 
-const cellValue = (item: any, field: string | undefined) => {
-    return field?.split('.').reduce((obj, key) => obj?.[key], item);
+// Enhanced error handling for critical functions
+const safeCellValue = (item: DataRow | null | undefined, field: string | undefined): any => {
+    if (!item || !field) return null;
+
+    try {
+        return field.split('.').reduce((obj, key) => {
+            if (obj == null) return null;
+            return obj[key];
+        }, item);
+    } catch (error) {
+        console.warn(`Error accessing field '${field}':`, error);
+        return null;
+    }
 };
 
-const dateFormat = (date: any) => {
+const safeDateFormat = (date: Date | string | number | null | undefined): string => {
+    if (!date) return '';
+
     try {
-        if (!date) {
+        const dt = new Date(date);
+        if (isNaN(dt.getTime())) {
+            console.warn('Invalid date provided to dateFormat:', date);
             return '';
         }
-        const dt = new Date(date);
+
         const day = dt.getDate();
         const month = dt.getMonth() + 1;
         const year = dt.getFullYear();
 
-        return year + '-' + (month > 9 ? month : '0' + month) + '-' + (day > 9 ? day : '0' + day);
-    } catch {}
-    return '';
+        return `${year}-${month > 9 ? month : '0' + month}-${day > 9 ? day : '0' + day}`;
+    } catch (error) {
+        console.warn('Error formatting date:', error);
+        return '';
+    }
+};
+
+const safeParseFloat = (value: any): number | null => {
+    if (value == null || value === '') return null;
+
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? null : parsed;
+};
+
+// Type-safe utility functions
+const createTypeSafeColumn = <T extends BaseDataRow>(
+    config: StrictColDef<T>
+): StrictColDef<T> => {
+    return {
+        type: 'string' as ColumnType,
+        filter: true,
+        search: true,
+        sort: true,
+        html: false,
+        hide: false,
+        isUnique: false,
+        ...config,
+    };
+};
+
+const validateColumnType = (type: string): ColumnType => {
+    if (isValidColumnType(type)) {
+        return type;
+    }
+    console.warn(`Invalid column type '${type}', defaulting to 'string'`);
+    return 'string';
+};
+
+const validateFilterCondition = (condition: string): FilterCondition => {
+    if (isValidFilterCondition(condition)) {
+        return condition;
+    }
+    console.warn(`Invalid filter condition '${condition}', defaulting to 'contain'`);
+    return 'contain';
+};
+
+const validateSortDirection = (direction: string): SortDirection => {
+    if (isValidSortDirection(direction)) {
+        return direction;
+    }
+    console.warn(`Invalid sort direction '${direction}', defaulting to 'asc'`);
+    return 'asc';
+};
+
+// Type-safe column value extractor
+const extractColumnValue = <T extends BaseDataRow>(
+    item: T,
+    field: keyof T | string
+): PrimitiveValue => {
+    try {
+        if (typeof field === 'string') {
+            return safeCellValue(item, field) as PrimitiveValue;
+        } else {
+            return item[field] as PrimitiveValue;
+        }
+    } catch {
+        return null;
+    }
 };
 
 //row click
-const rowClick = (item: any, index: number) => {
+const rowClick = (item: DataRow, index: number): void => {
     clickCount.value++;
 
     if (clickCount.value === 1) {
