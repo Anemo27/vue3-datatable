@@ -1,5 +1,5 @@
 <template>
-    <svg width="84" height="84" viewBox="0 0 24 24" class="bh-loader bh-text-primary">
+    <svg width="84" height="84" viewBox="0 0 24 24" class="text-blue-600">
         <circle cx="18" cy="12" r="0" fill="currentColor">
             <animate
                 attributeName="r"

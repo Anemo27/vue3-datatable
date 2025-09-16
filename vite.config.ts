@@ -9,8 +9,8 @@ export default defineConfig({
         lib: {
             entry: {
                 'vue3-datatable': resolve(__dirname, 'src/components/index.ts'),
-                'vue3-datatable-css': resolve(__dirname, 'src/assets/css/tailwind.css'),
             },
+            name: 'Vue3Datatable',
         },
         rollupOptions: {
             // make sure to externalize deps that shouldn't be bundled
@@ -24,5 +24,6 @@ export default defineConfig({
                 },
             },
         },
+        cssCodeSplit: true,
     },
 });

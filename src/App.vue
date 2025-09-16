@@ -1,13 +1,13 @@
 <template>
-    <div class="bh-p-10">
-        <div class="bh-mb-2">
+    <div class="p-10">
+        <div class="mb-2">
             <input
                 type="text"
                 v-model="params.search"
                 placeholder="Search..."
-                class="bh-border bh-border-solid bh-bg-white bh-p-2 bh-outline-0 bh-border-gray-200 focus:bh-border-gray-200 bh-rounded"
+                class="border border-solid bg-white p-2 outline-0 border-gray-200 focus:border-gray-200 rounded"
             />
-            <button type="button" class="btn mb-4 bh-p-2" @click="datatable.reset()">Reset</button> <br />
+            <button type="button" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mb-4" @click="datatable.reset()">Reset</button> <br />
         </div>
 
         <vue3-datatable
@@ -26,6 +26,7 @@
             :search="params.search"
             :hasCheckbox="true"
             :columnFilter="false"
+            :class="'h-96'"
             @change="changeServer"
         >
         </vue3-datatable>
@@ -34,7 +35,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
 import Vue3Datatable from './components/custom-table.vue';
-import '../dist/style.css';
+import './assets/css/tailwind.css';
 
 onMounted(() => {
     getUsers();

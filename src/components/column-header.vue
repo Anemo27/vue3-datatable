@@ -3,18 +3,18 @@
         <th
             v-if="props.all.hasCheckbox"
             :key="'chkall'"
-            class="bh-w-px"
+            class="w-px font-bold align-top whitespace-nowrap text-left py-3 px-4"
             :class="{
-                'bh-sticky bh-bg-blue-light bh-z-[1]': props.all.stickyHeader || props.all.stickyFirstColumn,
-                'bh-top-0': props.all.stickyHeader,
-                'bh-left-0': props.all.stickyFirstColumn,
+                'sticky bg-blue-50 z-[1]': props.all.stickyHeader || props.all.stickyFirstColumn,
+                'top-0': props.all.stickyHeader,
+                'left-0': props.all.stickyFirstColumn,
             }"
         >
-            <div class="bh-checkbox">
-                <input ref="selectedAll" type="checkbox" @click.stop="emit('selectAll', $event.target.checked)" />
-                <div>
-                    <icon-check class="check" />
-                    <icon-dash class="intermediate" />
+            <div class="relative">
+                <input ref="selectedAll" type="checkbox" @click.stop="emit('selectAll', $event.target.checked)" class="opacity-0 absolute h-5 w-5" />
+                <div class="bg-white border border-solid rounded border-slate-300 w-5 h-5 grid place-content-center">
+                    <icon-check class="check hidden w-3 h-3 text-blue-600 pointer-events-none" />
+                    <icon-dash class="intermediate hidden w-3 h-3 text-blue-600 pointer-events-none" />
                 </div>
             </div>
         </th>
@@ -22,11 +22,11 @@
             <th
                 v-if="!col.hide"
                 :key="col.field"
-                class="bh-select-none bh-z-[1]"
+                class="select-none z-[1] font-bold align-top whitespace-nowrap text-left py-3 px-4"
                 :class="[
-                    props.all.sortable && col.sort ? 'bh-cursor-pointer' : '',
-                    j === 0 && props.all.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
-                    props.all.hasCheckbox && j === 0 && props.all.stickyFirstColumn ? 'bh-left-[52px]' : '',
+                    props.all.sortable && col.sort ? 'cursor-pointer' : '',
+                    j === 0 && props.all.stickyFirstColumn ? 'sticky left-0 bg-blue-50' : '',
+                    props.all.hasCheckbox && j === 0 && props.all.stickyFirstColumn ? 'left-[52px]' : '',
                 ]"
                 :style="{
                     width: col.width,
@@ -34,39 +34,39 @@
                     'max-width': col.maxWidth,
                 }"
             >
-                <div class="bh-flex bh-items-center" :class="[col.headerClass ? col.headerClass : '']" @click="props.all.sortable && col.sort && emit('sortChange', col.field)">
+                <div class="flex items-center" :class="[col.headerClass ? col.headerClass : '']" @click="props.all.sortable && col.sort && emit('sortChange', col.field)">
                     {{ col.title }}
-                    <span v-if="props.all.sortable && col.sort" class="bh-ml-3 bh-sort bh-flex bh-items-center" :class="[props.currentSortColumn, props.currentSortDirection]">
+                    <span v-if="props.all.sortable && col.sort" class="ml-3 flex items-center" :class="[props.currentSortColumn, props.currentSortDirection]">
                         <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
                             <polygon
                                 points="3.11,6.25 10.89,6.25 7,1.75 "
                                 fill="currentColor"
-                                class="bh-text-black/20"
-                                :class="[currentSortColumn === col.field && currentSortDirection === 'asc' ? '!bh-text-primary' : '']"
+                                class="text-black/20"
+                                :class="[currentSortColumn === col.field && currentSortDirection === 'asc' ? '!text-blue-600' : '']"
                             ></polygon>
                             <polygon
                                 points="7,12.25 10.89,7.75 3.11,7.75 "
                                 fill="currentColor"
-                                class="bh-text-black/20"
-                                :class="[currentSortColumn === col.field && currentSortDirection === 'desc' ? '!bh-text-primary' : '']"
+                                class="text-black/20"
+                                :class="[currentSortColumn === col.field && currentSortDirection === 'desc' ? '!text-blue-600' : '']"
                             ></polygon>
                         </svg>
                     </span>
                 </div>
 
                 <template v-if="props.all.columnFilter && !props.isFooter">
-                    <div v-if="col.filter" class="bh-filter bh-relative">
-                        <input v-if="col.type === 'string'" v-model.trim="col.value" type="text" class="bh-form-control" @keyup="emit('filterChange')" />
-                        <input v-if="col.type === 'number'" v-model.number.trim="col.value" type="number" class="bh-form-control" @keyup="emit('filterChange')" />
-                        <input v-else-if="col.type === 'date'" v-model="col.value" type="date" class="bh-form-control" @change="emit('filterChange')" />
-                        <select v-else-if="col.type === 'bool'" v-model="col.value" class="bh-form-control" @change="emit('filterChange')" @click="props.isOpenFilter = null">
+                    <div v-if="col.filter" class="relative">
+                        <input v-if="col.type === 'string'" v-model.trim="col.value" type="text" class="w-full box-border bg-white h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 text-black font-normal rounded-l px-3 py-1 text-sm" @keyup="emit('filterChange')" />
+                        <input v-if="col.type === 'number'" v-model.number.trim="col.value" type="number" class="w-full box-border bg-white h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 text-black font-normal rounded-l px-3 py-1 text-sm" @keyup="emit('filterChange')" />
+                        <input v-else-if="col.type === 'date'" v-model="col.value" type="date" class="w-full box-border bg-white h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 text-black font-normal rounded-l px-3 py-1 text-sm" @change="emit('filterChange')" />
+                        <select v-else-if="col.type === 'bool'" v-model="col.value" class="w-full box-border bg-white h-full min-w-[60px] outline-0 focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 text-black font-normal rounded-l px-3 py-1 text-sm" @change="emit('filterChange')" @click="props.isOpenFilter = null">
                             <option :value="undefined">All</option>
                             <option :value="true">True</option>
                             <option :value="false">False</option>
                         </select>
 
                         <button v-if="col.type !== 'bool'" type="button" @click.stop="emit('toggleFilterMenu', col)">
-                            <icon-filter class="bh-w-4" />
+                            <icon-filter class="w-4" />
                         </button>
 
                         <column-filter

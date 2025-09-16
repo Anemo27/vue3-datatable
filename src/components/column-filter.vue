@@ -1,6 +1,6 @@
 <template>
-    <div class="bh-filter-menu bh-absolute bh-z-[1] bh-bg-white bh-shadow-md bh-rounded-md bh-top-full bh-right-0 bh-w-32 bh-mt-1">
-        <div class="bh-text-[13px] bh-font-normal bh-rounded bh-overflow-hidden" @click.stop="close">
+    <div class="absolute z-[1] bg-white shadow-md rounded-md top-full right-0 w-32 mt-1">
+        <div class="text-[13px] font-normal rounded overflow-hidden" @click.stop="close">
             <button type="button" :class="{ active: props.column.condition === '' }" @click="select('')">
                 {{ (props.columnFilterLang && props.columnFilterLang['no_filter']) ?? 'No filter' }}
             </button>

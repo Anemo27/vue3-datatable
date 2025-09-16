@@ -1,8 +1,8 @@
 <template>
-    <div class="bh-datatable bh-antialiased bh-relative bh-text-black bh-text-sm bh-font-normal">
-        <div class="bh-table-responsive" :class="{ 'bh-min-h-[300px]': currentLoader }" :style="{ height: props.stickyHeader && props.height }">
-            <table :class="[props.skin]">
-                <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
+    <div class="antialiased relative text-black text-sm font-normal flex flex-col" :class="props.class">
+        <div class="overflow-auto w-full relative rounded flex-1" :class="{ 'min-h-[300px]': currentLoader }" :style="{ height: props.stickyHeader && props.height }">
+            <table :class="['vue3-datatable w-full max-w-full border-collapse', props.skin]">
+                <thead :class="['bg-blue-50', { 'sticky top-0 z-10': props.stickyHeader }]">
                     <column-header
                         :all="props"
                         :currentSortColumn="currentSortColumn"
@@ -16,24 +16,25 @@
                         @toggleFilterMenu="toggleFilterMenu"
                     />
                 </thead>
-                <tbody>
+                <tbody class="border-b border-solid border-blue-200">
                     <template v-if="filterRowCount">
                         <tr
                             v-for="(item, i) in filterItems"
                             :key="item[uniqueKey] ? item[uniqueKey] : i"
-                            :class="[typeof props.rowClass === 'function' ? rowClass(item) : props.rowClass, props.selectRowOnClick ? 'bh-cursor-pointer' : '']"
+                            :class="[typeof props.rowClass === 'function' ? rowClass(item) : props.rowClass, props.selectRowOnClick ? 'cursor-pointer' : '']"
                             @click.prevent="rowClick(item, i)"
                         >
                             <td
                                 v-if="props.hasCheckbox"
+                                class="text-left py-3 px-4"
                                 :class="{
-                                    'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn,
+                                    'sticky left-0 bg-blue-50': props.stickyFirstColumn,
                                 }"
                             >
-                                <div class="bh-checkbox">
-                                    <input v-model="selected" type="checkbox" :value="item[uniqueKey] ? item[uniqueKey] : i" @click.stop />
-                                    <div>
-                                        <icon-check class="check" />
+                                <div class="relative">
+                                    <input v-model="selected" type="checkbox" :value="item[uniqueKey] ? item[uniqueKey] : i" @click.stop class="opacity-0 absolute h-5 w-5" />
+                                    <div class="bg-white border border-solid rounded border-slate-300 w-5 h-5 grid place-content-center">
+                                        <icon-check class="check hidden w-3 h-3 text-blue-600 pointer-events-none" />
                                     </div>
                                 </div>
                             </td>
@@ -41,10 +42,11 @@
                                 <td
                                     v-if="!col.hide"
                                     :key="col.field"
+                                    class="text-left py-3 px-4"
                                     :class="[
                                         typeof props.cellClass === 'function' ? cellClass(item) : props.cellClass,
-                                        j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
-                                        props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
+                                        j === 0 && props.stickyFirstColumn ? 'sticky left-0 bg-blue-50' : '',
+                                        props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'left-[52px]' : '',
                                         col.cellClass ? col.cellClass : '',
                                     ]"
                                 >
@@ -66,15 +68,17 @@
                     </tr>
 
                     <template v-if="!filterRowCount && currentLoader">
-                        <tr v-for="i in props.pageSize" :key="i" class="!bh-bg-white bh-h-11 !bh-border-transparent">
-                            <td :colspan="props.columns.length + 1" class="!bh-p-0 !bh-border-transparent">
-                                <div class="bh-skeleton-box bh-h-8"></div>
+                        <tr v-for="i in props.pageSize" :key="i" class="!bg-white h-11 !border-transparent">
+                            <td :colspan="props.columns.length + 1" class="!p-0 !border-transparent">
+                                <div class="relative overflow-hidden bg-gray-100 w-full h-8
+                                     after:content-[''] after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_infinite]
+                                     after:bg-[linear-gradient(90deg,rgba(0,0,0,0)_0,rgba(0,0,0,0.025)_20%,rgba(0,0,0,0.05)_50%,rgba(0,0,0,0))]"></div>
                             </td>
                         </tr>
                     </template>
                 </tbody>
 
-                <tfoot v-if="props.cloneHeaderInFooter" :class="{ 'bh-sticky bh-bottom-0': props.stickyHeader }">
+                <tfoot v-if="props.cloneHeaderInFooter" :class="{ 'sticky bottom-0': props.stickyHeader }">
                     <column-header
                         :all="props"
                         :currentSortColumn="currentSortColumn"
@@ -90,25 +94,25 @@
                 </tfoot>
             </table>
 
-            <div v-if="filterRowCount && currentLoader" class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center">
+            <div v-if="filterRowCount && currentLoader" class="absolute inset-0 bg-blue-50/50 grid place-content-center">
                 <icon-loader />
             </div>
         </div>
-        <div v-if="props.pagination && filterRowCount" class="bh-pagination bh-py-5" :class="{ 'bh-pointer-events-none': currentLoader }">
-            <div class="bh-flex bh-items-center bh-flex-wrap bh-flex-col sm:bh-flex-row bh-gap-4">
-                <div class="bh-pagination-info bh-flex bh-items-center">
-                    <span class="bh-mr-2">
+        <div v-if="props.pagination && filterRowCount" class="py-5 flex-shrink-0" :class="{ 'pointer-events-none': currentLoader }">
+            <div class="flex items-center flex-wrap flex-col sm:flex-row gap-4">
+                <div class="flex items-center">
+                    <span class="mr-2">
                         {{ stringFormat(props.paginationInfo, filterRowCount ? offset : 0, limit, filterRowCount) }}
                     </span>
-                    <select v-if="props.showPageSize" v-model="currentPageSize" class="bh-pagesize">
+                    <select v-if="props.showPageSize" v-model="currentPageSize" class="outline-0 bg-white box-border focus:ring-1 focus:ring-slate-300/40 border border-solid border-slate-300 rounded text-black font-normal px-2 py-1.5">
                         <option v-for="option in props.pageSizeOptions" :value="option" :key="option">
                             {{ option }}
                         </option>
                     </select>
                 </div>
 
-                <div class="bh-pagination-number sm:bh-ml-auto bh-inline-flex bh-items-center bh-space-x-1">
-                    <button v-if="props.showFirstPage" type="button" class="bh-page-item first-page" :class="{ disabled: currentPage <= 1 }" @click="currentPage = 1">
+                <div class="sm:ml-auto inline-flex items-center space-x-1">
+                    <button v-if="props.showFirstPage" type="button" class="bg-white cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 first-page" :class="{ 'pointer-events-none opacity-50': currentPage <= 1 }" @click="currentPage = 1">
                         <span v-if="props.firstArrow" v-html="props.firstArrow"> </span>
                         <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                             <g fill="currentColor" fill-rule="evenodd">
@@ -117,7 +121,7 @@
                             </g>
                         </svg>
                     </button>
-                    <button type="button" class="bh-page-item previous-page" :class="{ disabled: currentPage <= 1 }" @click="previousPage">
+                    <button type="button" class="bg-white cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 previous-page" :class="{ 'pointer-events-none opacity-50': currentPage <= 1 }" @click="previousPage">
                         <span v-if="props.previousArrow" v-html="props.previousArrow"> </span>
                         <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                             <path
@@ -133,10 +137,10 @@
                             v-for="page in paging"
                             :key="page"
                             type="button"
-                            class="bh-page-item"
+                            class="bg-white cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200"
                             :class="{
                                 disabled: currentPage === page,
-                                'bh-active': page === currentPage,
+                                'bg-blue-600 text-white border-blue-600': page === currentPage,
                             }"
                             @click="movePage(page)"
                         >
@@ -144,7 +148,7 @@
                         </button>
                     </template>
 
-                    <button type="button" class="bh-page-item next-page" :class="{ disabled: currentPage >= maxPage }" @click="nextPage">
+                    <button type="button" class="bg-white cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 next-page" :class="{ 'pointer-events-none opacity-50': currentPage >= maxPage }" @click="nextPage">
                         <span v-if="props.nextArrow" v-html="props.nextArrow"> </span>
                         <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                             <path
@@ -155,7 +159,7 @@
                         </svg>
                     </button>
 
-                    <button v-if="props.showLastPage" type="button" class="bh-page-item last-page" :class="{ disabled: currentPage >= maxPage }" @click="currentPage = maxPage">
+                    <button v-if="props.showLastPage" type="button" class="bg-white cursor-pointer grid place-content-center w-8 h-8 px-2.5 py-1.5 text-gray-600 hover:text-white hover:bg-blue-600 border border-solid border-gray-300 hover:border-blue-600 rounded-full select-none outline-0 transition-colors duration-200 last-page" :class="{ 'pointer-events-none opacity-50': currentPage >= maxPage }" @click="currentPage = maxPage">
                         <span v-if="props.lastArrow" v-html="props.lastArrow"> </span>
                         <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                             <g fill="currentColor" fill-rule="evenodd">
@@ -232,6 +236,7 @@ interface Props {
     noDataContent?: string; // default: "No data available",
     stickyHeader?: boolean;
     height?: string; // default 450px - only working with sticky headers
+    class?: string; // Custom CSS classes for the datatable wrapper
     stickyFirstColumn?: boolean;
     cloneHeaderInFooter?: boolean;
     selectRowOnClick?: boolean;
@@ -240,7 +245,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
     loading: false,
     isServerMode: false,
-    skin: 'bh-table-striped bh-table-hover',
+    skin: 'bg-slate-100/15 hover:bg-gray-50',
     totalRows: 0,
     rows: () => [],
     columns: () => [],
@@ -272,6 +277,7 @@ const props = withDefaults(defineProps<Props>(), {
     noDataContent: 'No data available',
     stickyHeader: false,
     height: '500px',
+    class: '',
     stickyFirstColumn: false,
     cloneHeaderInFooter: false,
     selectRowOnClick: false,

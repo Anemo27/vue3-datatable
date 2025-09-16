@@ -1,4 +1,4 @@
-# @bhplugin/vue3-datatable
+# @anemo27/vue3-datatable
 
 ## Example
 
@@ -9,19 +9,19 @@
 #### NPM
 
 ```bash
-npm install @bhplugin/vue3-datatable --save
+npm install @anemo27/vue3-datatable --save
 ```
 
 #### Yarn
 
 ```bash
-yarn add @bhplugin/vue3-datatable
+yarn add @anemo27/vue3-datatable
 ```
 
 #### Bower
 
 ```bash
-bower install @bhplugin/vue3-datatable --save
+bower install @anemo27/vue3-datatable --save
 ```
 
 ## Usage
@@ -33,8 +33,8 @@ bower install @bhplugin/vue3-datatable --save
 
 <script setup lang="ts">
     import { ref } from "vue";
-    import Vue3Datatable from "@bhplugin/vue3-datatable";
-    import "@bhplugin/vue3-datatable/dist/style.css";
+    import Vue3Datatable from "@anemo27/vue3-datatable";
+    import "@anemo27/vue3-datatable/dist/style.css";
 
     const cols = ref([
       { field: "id", title: "ID", width: "90px", filter: false },
@@ -81,6 +81,41 @@ bower install @bhplugin/vue3-datatable --save
 </script>
 ```
 
+## Class Usage
+
+You can use any CSS classes (including Tailwind CSS) to customize the datatable component using the `class` prop:
+
+```html
+<template>
+    <!-- Height control -->
+    <vue3-datatable :rows="rows" :columns="cols" class="h-96"> </vue3-datatable>
+    
+    <!-- Styling -->
+    <vue3-datatable :rows="rows" :columns="cols" class="border shadow-lg rounded-lg"> </vue3-datatable>
+    
+    <!-- Multiple classes -->
+    <vue3-datatable :rows="rows" :columns="cols" class="h-80 bg-white border border-gray-200 rounded-lg shadow-md"> </vue3-datatable>
+    
+    <!-- Responsive design -->
+    <vue3-datatable :rows="rows" :columns="cols" class="h-64 md:h-96 lg:h-screen"> </vue3-datatable>
+</template>
+```
+
+**Layout Structure:**
+The component uses a flexbox layout (`flex flex-col`) to ensure proper containment:
+- **Table container**: Uses `flex-1` to take available space
+- **Pagination**: Uses `flex-shrink-0` to maintain its size
+- This prevents pagination from overflowing the parent container when height is constrained
+
+**Common Tailwind CSS classes:**
+- **Height**: `h-64`, `h-80`, `h-96`, `h-screen`, `max-h-screen`
+- **Background**: `bg-white`, `bg-gray-50`, `bg-blue-50`, `bg-gradient-to-br from-white to-gray-50`
+- **Border**: `border`, `border-gray-200`, `border-2`, `rounded-lg`, `rounded-xl`
+- **Shadow**: `shadow-sm`, `shadow-md`, `shadow-lg`, `shadow-xl`
+- **Spacing**: `p-4`, `m-2`, `space-y-4`
+- **Colors**: `text-white`, `bg-gray-900`, `border-blue-200`
+- **Responsive**: `md:h-96`, `lg:h-screen`, `sm:shadow-md`
+
 ## Props
 
 | Props                   | Type                    | Default                             | Description                                                                                                                                                                                           |
@@ -117,6 +152,7 @@ bower install @bhplugin/vue3-datatable --save
 | **noDataContent**       | string                  | No data available                   | custom no data message                                                                                                                                                                                |
 | **stickyHeader**        | boolean                 | false                               | enable fixed header                                                                                                                                                                                   |
 | **height**              | string                  | 450px                               | only will be used when stickyHeader enabled                                                                                                                                                           |
+| **class**               | string                  | ""                                  | Custom CSS classes for the datatable wrapper. Supports Tailwind CSS classes like "h-96", "border", "shadow-lg", etc. The component uses flexbox layout to ensure proper containment of table and pagination.                                         |
 | **stickyFirstColumn**   | boolean                 | false                               | enable fixed first column                                                                                                                                                                             |
 | **cloneHeaderInFooter** | boolean                 | false                               | enable clone header in footer                                                                                                                                                                         |
 | **selectRowOnClick**    | boolean                 | false                               | enable to select row(checkbox) on row click                                                                                                                                                           |
@@ -179,7 +215,7 @@ bower install @bhplugin/vue3-datatable --save
 
 ## License
 
-**_@bhplugin/vue3-datatable_** is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
+**_@anemo27/vue3-datatable_** is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
 
 <br/>
 
@@ -187,12 +223,12 @@ bower install @bhplugin/vue3-datatable --save
 
 <br/>
 
-### Angular Datatable - [**@bhplugin/ng-datatable**](https://www.npmjs.com/package/@bhplugin/ng-datatable)
+### Angular Datatable - [**@anemo27/ng-datatable**](https://www.npmjs.com/package/@anemo27/ng-datatable)
 
 <br/>
 
 ## Support
 
-<a target="_blank" href="https://www.buymeacoffee.com/bhplugin">
+<a target="_blank" href="https://www.buymeacoffee.com/anemo27">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60">
 </a>
